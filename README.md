@@ -2,7 +2,7 @@
 Webhooks voor Sticky
 
 # Gebruiken
-run `FLASK_APP=main.py flask run`
+run `pipenv run server`
 
 # Testen
 Installeer ngrok (snap install ngrok) (ja ngrok is alleen gepackaged voor snap)
