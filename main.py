@@ -2,8 +2,10 @@ from flask import Flask, request, Response, abort
 from flask_restful import Api, Resource
 from hashlib import sha1
 import hmac
+import json
 
 app = Flask(__name__)
+app.debug = True
 api = Api(app)
 
 class GitHub(Resource):
@@ -20,7 +22,7 @@ class GitHub(Resource):
             abort(401)
         
         ## TODO: do something with the payload
-        # payload is found in request.form
+        # payload is found in request.get_json()
 
         return Response(status=200)
 
@@ -30,9 +32,14 @@ class Sentry(Resource):
 
     def post(self):
         ## TODO: find out if Sentry supports authenticated webhooks
+        # btw this is quite important since we're 'eval'ing the input
         
         ## TODO: do something with the payload
         # payload is found in request.form
+
+        # TODO: check if keys actually exist
+        print(json.dumps(request.get_json()['event']['exception']['values'])) # DEBUG
+
 
         return Response(status=200)        
 
