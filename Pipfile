@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 Flask = "*"
 "Flask-RESTful" = "*"
+python-dotenv = "*"
 
 [dev-packages]
 black = "*"
@@ -13,9 +14,6 @@ pylint = "*"
 
 [scripts]
 server = "flask run"
-
-[requires]
-python_version = "3.7"
 
 [pipenv]
 allow_prereleases = true # Required for black
