@@ -3,6 +3,7 @@ from flask_restful import Api, Resource
 from hashlib import sha1
 import hmac
 import json
+import subprocess
 
 app = Flask(__name__)
 app.debug = True
@@ -21,8 +22,8 @@ class GitHub(Resource):
         if not hmac.compare_digest(signature, hmac.new(self.SECRET, request.get_data(), sha1).hexdigest()):
             abort(401)
         
-        ## TODO: do something with the payload
-        # payload is found in request.get_json()
+        # TODO: replace variable by actual environment variable
+        subprocess.call(['./static-sticky-deploy.sh', "dev.svsticky.nl"])
 
         return Response(status=200)
 
