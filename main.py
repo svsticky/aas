@@ -10,6 +10,9 @@ app = Flask(__name__)
 app.debug = True
 api = Api(app)
 
+def deploy_static_sticky():
+    directory = os.environ["DEPLOY_DIRECTORY"]
+    subprocess.call(['./static-sticky-deploy.sh', directory])
 
 class GitHub(Resource):
     # Share this secret with GitHub to authenticate this hook
@@ -26,14 +29,11 @@ class GitHub(Resource):
         ):
             abort(401)
         
-        directory = os.environ["DEPLOY_DIRECTORY"]
-        subprocess.call(['./static-sticky-deploy.sh', directory])
+        deploy_static_sticky()
 
         return Response(status=200)
 
-
 class Sentry(Resource):
-    # Share this secret with Sentry to authenticate this hook
 
     def post(self):
         # TODO: check if keys actually exist
@@ -51,7 +51,17 @@ class Sentry(Resource):
 
         return Response(status=200)
 
+class Contentful(Resource):
+
+    def post(self):
+        deploy_static_sticky()
+
+        return Response(status=200)
+
+
 
 api.add_resource(GitHub, "/webhook/github")
-SECRET_ENDPOINT = os.environ["SENTRY_SECRET_ENDPOINT"]
-api.add_resource(Sentry, "/webhook/sentry/" + SECRET_ENDPOINT)
+SENTRY_ENDPOINT = os.environ["SENTRY_SECRET_ENDPOINT"]
+api.add_resource(Sentry, "/webhook/sentry/" + SENTRY_ENDPOINT)
+CONTENTFUL_ENDPOINT = os.environ["CONTENTFUL_SECRET_ENDPOINT"]
+api.add_resource(Contentful, "/webhook/contentful/" + CONTENTFUL_ENDPOINT)
