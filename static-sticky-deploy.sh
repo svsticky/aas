@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# This script needs to be called with one variable
+# $1 should be the deployment directory
+
+cd /tmp
+
 git clone git@github.com:svsticky/static-sticky.git
 cd static-sticky
 
@@ -9,7 +14,7 @@ cd static-sticky
 npm run build
 
 # $1 should be the correct deploy folder, either dev.svsticky.nl or svsticky.nl, depending on the environment
-cp public /var/www/static-sticky/$1
+cp public $1
 
 # cleanup
 cd ..
