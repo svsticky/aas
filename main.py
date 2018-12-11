@@ -11,10 +11,7 @@ app.debug = True
 api = Api(app)
 
 def deploy_static_sticky():
-    directory = os.environ["DEPLOY_DIRECTORY"]
-    cf_space_id = os.environ["CONTENTFUL_SPACE_ID"]
-    cf_access_token = os.environ["CONTENTFUL_ACCESS_TOKEN"]
-    subprocess.call(['./static-sticky-deploy.sh', directory, cf_space_id, cf_access_token])
+    subprocess.call(['/usr/local/bin/static-deploy_static_sticky.sh'])
 
 class GitHub(Resource):
     # Share this secret with GitHub to authenticate this hook
