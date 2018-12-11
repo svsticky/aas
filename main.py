@@ -6,12 +6,10 @@ import json
 import subprocess
 import os
 
-app = Flask(__name__)
-app.debug = True
-api = Api(app)
 
 def deploy_static_sticky():
     subprocess.call(['/usr/local/bin/static-deploy_static_sticky.sh'])
+
 
 class GitHub(Resource):
     # Share this secret with GitHub to authenticate this hook
@@ -32,6 +30,7 @@ class GitHub(Resource):
 
         return Response(status=200)
 
+
 class Sentry(Resource):
 
     def post(self):
@@ -50,6 +49,7 @@ class Sentry(Resource):
 
         return Response(status=200)
 
+
 class Contentful(Resource):
 
     def post(self):
@@ -58,9 +58,13 @@ class Contentful(Resource):
         return Response(status=200)
 
 
+if __name__ == '__main__':
+    app = Flask(__name__)
+    app.debug = True
+    api = Api(app)
 
-api.add_resource(GitHub, "/webhook/github")
-SENTRY_ENDPOINT = os.environ["SENTRY_SECRET_ENDPOINT"]
-api.add_resource(Sentry, "/webhook/sentry/" + SENTRY_ENDPOINT)
-CONTENTFUL_ENDPOINT = os.environ["CONTENTFUL_SECRET_ENDPOINT"]
-api.add_resource(Contentful, "/webhook/contentful/" + CONTENTFUL_ENDPOINT)
+    api.add_resource(GitHub, "/webhook/github")
+    SENTRY_ENDPOINT = os.environ["SENTRY_SECRET_ENDPOINT"]
+    api.add_resource(Sentry, "/webhook/sentry/" + SENTRY_ENDPOINT)
+    CONTENTFUL_ENDPOINT = os.environ["CONTENTFUL_SECRET_ENDPOINT"]
+    api.add_resource(Contentful, "/webhook/contentful/" + CONTENTFUL_ENDPOINT)
