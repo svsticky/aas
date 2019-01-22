@@ -8,7 +8,7 @@ import os
 
 
 def deploy_static_sticky():
-    subprocess.call(['/usr/local/bin/static-deploy_static_sticky.sh'])
+    subprocess.call([os.environ["DEPLOY_SCRIPT"]])
 
 
 class GitHub(Resource):
