@@ -13,7 +13,9 @@ black = "*"
 pylint = "*"
 
 [scripts]
-server = "flask run"
+server = "python main.py"
+autoformat = "black ."
+
 
 [pipenv]
 allow_prereleases = true # Required for black
