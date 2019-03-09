@@ -34,9 +34,19 @@ class GitHub(Resource):
         ):
             abort(401)
 
-        executor.submit(deploy_static_sticky)
+        response_payload = request.get_json()
 
-        return Response(status=200)
+        if "ref" in response_payload:
+            pushed_branch = response_payload["ref"]
+            deploy_branch = os.environ["DEPLOY_REF"]
+
+            if pushed_branch == "refs/heads/" + deploy_branch:
+                executor.submit(deploy_static_sticky)
+                return Response(status=200)
+            else:
+                abort(421)
+        else:
+            abort(400)
 
 class Contentful(Resource):
     def post(self):
