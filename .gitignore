@@ -5,3 +5,5 @@ __pycache__/
 .directory
 
 .vscode/
+
+.venv/
