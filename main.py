@@ -14,8 +14,8 @@ executor = concurrent.futures.ThreadPoolExecutor(2)
 
 def deploy_static_sticky():
     deploy_service = os.getenv("DEPLOY_SERVICE")
-    # make sure this command is added to the sudoers file, otherwise it will fail
-    subprocess.run(["systemctl", "start", "--no-block", deploy_service])
+    # Make sure the user running this has root privileges to start this command, e.g. by adding it to a sudoers file
+    subprocess.run(["sudo", "/usr/bin/systemd-run", "--no-block", "--property", f"After={deploy_service}", "--", "systemctl", "start", deploy_service], check=True)
 
 
 class GitHub(Resource):
