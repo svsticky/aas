@@ -12,6 +12,9 @@ python-dotenv = "*"
 black = "*"
 pylint = "*"
 
+[requires]
+python_version = "3.6"
+
 [scripts]
 server = "python main.py"
 autoformat = "black ."
