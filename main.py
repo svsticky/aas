@@ -56,7 +56,6 @@ class Contentful(Resource):
 
 if __name__ == "__main__":
     app = Flask(__name__)
-    app.debug = True
     api = Api(app)
 
     contentful_endpoint = os.getenv("CONTENTFUL_SECRET_ENDPOINT")
