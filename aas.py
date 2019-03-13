@@ -9,9 +9,6 @@ from flask import Flask, request, Response, abort
 from flask_restful import Api, Resource
 
 
-executor = concurrent.futures.ThreadPoolExecutor(2)
-
-
 def deploy_static_sticky():
     deploy_service = os.getenv("DEPLOY_SERVICE")
     # Make sure the user running this has root privileges to start this command, e.g. by adding it to a sudoers file
@@ -41,7 +38,7 @@ class GitHub(Resource):
             deploy_branch = os.environ["DEPLOY_REF"]
 
             if pushed_branch == "refs/heads/" + deploy_branch:
-                executor.submit(deploy_static_sticky)
+                deploy_static_sticky()
                 return Response(status=200)
             else:
                 abort(421)
@@ -50,7 +47,7 @@ class GitHub(Resource):
 
 class Contentful(Resource):
     def post(self):
-        executor.submit(deploy_static_sticky)
+        deploy_static_sticky()
         return Response(status=200)
 
 
