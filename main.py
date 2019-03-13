@@ -54,13 +54,13 @@ class Contentful(Resource):
         return Response(status=200)
 
 
+aas = Flask(__name__)
+aas_api = Api(aas, catch_all_404s=True)
+
+contentful_endpoint = os.getenv("CONTENTFUL_SECRET_ENDPOINT")
+
+aas_api.add_resource(GitHub, "/webhook/github")
+aas_api.add_resource(Contentful, "/webhook/contentful/" + contentful_endpoint)
+
 if __name__ == "__main__":
-    app = Flask(__name__)
-    api = Api(app)
-
-    contentful_endpoint = os.getenv("CONTENTFUL_SECRET_ENDPOINT")
-
-    api.add_resource(GitHub, "/webhook/github")
-    api.add_resource(Contentful, "/webhook/contentful/" + contentful_endpoint)
-
-    app.run()
+    aas.run()
