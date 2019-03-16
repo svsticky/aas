@@ -12,7 +12,20 @@ from flask_restful import Api, Resource
 def deploy_static_sticky():
     deploy_service = os.getenv("DEPLOY_SERVICE")
     # Make sure the user running this has root privileges to start this command, e.g. by adding it to a sudoers file
-    subprocess.run(["sudo", "/usr/bin/systemd-run", "--no-block", "--property", f"After={deploy_service}", "--", "systemctl", "start", deploy_service], check=True)
+    subprocess.run(
+        [
+            "sudo",
+            "/usr/bin/systemd-run",
+            "--no-block",
+            "--property",
+            f"After={deploy_service}",
+            "--",
+            "systemctl",
+            "start",
+            deploy_service,
+        ],
+        check=True,
+    )
 
 
 class GitHub(Resource):
@@ -44,6 +57,7 @@ class GitHub(Resource):
                 abort(421)
         else:
             abort(400)
+
 
 class Contentful(Resource):
     def post(self):
