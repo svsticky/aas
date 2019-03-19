@@ -54,7 +54,7 @@ class GitHub(Resource):
                 deploy_static_sticky()
                 return Response(status=200)
             else:
-                abort(421)
+                return Response(status=202)
         else:
             abort(400)
 
