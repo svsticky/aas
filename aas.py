@@ -28,20 +28,22 @@ def deploy_static_sticky():
     )
 
 
+def github_authenticated(secret):
+    # remove the sha1= prefix of the signature
+    signature = request.headers.get("X-Hub-Signature")[5:]
+
+    return hmac.compare_digest(
+        signature,
+        hmac.new(secret, request.get_data(), hashlib.sha1).hexdigest(),
+    )
+
+
 class GitHub(Resource):
     # Share this secret with GitHub to authenticate this hook
-    SECRET = os.environ["GITHUB_SECRET"].encode()
+    SECRET = os.environ["GITHUB_SECRET_STATIC_STICKY"].encode()
 
     def post(self):
-        ## Check authentication ##
-        # remove the sha1= prefix of the signature
-        # TODO: find more elegant way to do this
-        signature = request.headers.get("X-Hub-Signature")[5:]
-
-        if not hmac.compare_digest(
-            signature,
-            hmac.new(self.SECRET, request.get_data(), hashlib.sha1).hexdigest(),
-        ):
+        if not github_authenticated(self.SECRET):
             abort(401)
 
         response_payload = request.get_json()
@@ -65,6 +67,19 @@ class Contentful(Resource):
         return Response(status=200)
 
 
+class Stickypedia(Resource):
+    # Share this secret with GitHub to authenticate this hook
+    SECRET = os.environ["GITHUB_SECRET"].encode()
+
+    def post(self):
+        if not github_authenticated(self.SECRET):
+            abort(401)
+
+        # Make sure the user running this has the rights to call the script
+        subprocess.call([os.getenv("STICKYPEDIA_PULL_SCRIPT")])
+        return Response(status=200)
+
+
 aas = Flask(__name__)
 aas_api = Api(aas, catch_all_404s=True)
 
@@ -72,6 +87,7 @@ contentful_endpoint = os.getenv("CONTENTFUL_SECRET_ENDPOINT")
 
 aas_api.add_resource(GitHub, "/webhook/github")
 aas_api.add_resource(Contentful, "/webhook/contentful/" + contentful_endpoint)
+aas_api.add_resource(Stickypedia, "/webhook/stickypedia")
 
 if __name__ == "__main__":
     aas.run()
