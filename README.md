@@ -4,7 +4,7 @@ A webhook listener for use at Study Association Sticky, written as a Flask appli
 Its current use is to make automatic deployment possible of [our website][static-sticky] in our [production environment][sadserver], triggered by GitHub pushes or changes in the Contentful CMS it uses.
 
 # Usage
-This project requires Python 3.6+ and [`pipenv`][pipenv].
+This project requires Python 3.8+ and [`pipenv`][pipenv].
 
 ## Development
 ```
