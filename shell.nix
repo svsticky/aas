@@ -8,7 +8,7 @@ in
   pkgs.mkShell {
     name = "aas-devenv";
     buildInputs = [
-      (pkgs.python37.withPackages aas-deps)
+      (pkgs.python38.withPackages aas-deps)
       pkgs.niv
       pkgs.ngrok
     ];

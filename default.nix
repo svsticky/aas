@@ -5,4 +5,4 @@ let
 
   aas-deps = import ./aas.nix { development = false; };
 
-in pkgs.python37.withPackages aas-deps
+in pkgs.python38.withPackages aas-deps
