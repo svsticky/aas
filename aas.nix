@@ -5,6 +5,7 @@
   flask-restful
   python-dotenv
   gunicorn
+  requests
 ]
 ++ (
   if development 

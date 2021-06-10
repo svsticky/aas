@@ -5,6 +5,7 @@ import json
 import subprocess
 import os
 
+import requests
 from flask import Flask, request, Response, abort
 from flask_restful import Api, Resource
 
@@ -65,13 +66,45 @@ class Contentful(Resource):
         return Response(status=200)
 
 
+class Pretix(Resource):
+    TOKEN = os.environ["PRETIX_TOKEN"]
+
+    def post(self):
+        payload = request.get_json()
+
+        url = (
+            f'https://pretix.svsticky.nl/api/v1/organizers/{payload["organizer"]}/'
+            f'events/{payload["event"]}/orders/{payload["code"]}/'
+        )
+
+        response = requests.get(url, headers={"Authorization": f"Token {self.TOKEN}"})
+        data = response.json()
+
+        opt_in = False
+
+        position = data["positions"][0]
+
+        for answer in position["answers"]:
+            if answer["question_identifier"] != "aeskwadraatroddel":
+                continue
+
+            if answer["answer"] == "True":
+                opt_in = True
+
+        if opt_in:
+            print(f"opt-in detected: {data['invoice_address']['name']}")
+
+        return Response(status=200)
+
+
 aas = Flask(__name__)
 aas_api = Api(aas, catch_all_404s=True)
 
-contentful_endpoint = os.getenv("CONTENTFUL_SECRET_ENDPOINT")
+contentful_endpoint = os.getenv("CONTENTFUL_SECRET_ENDPOINT", "missing")
 
 aas_api.add_resource(GitHub, "/webhook/github")
 aas_api.add_resource(Contentful, "/webhook/contentful/" + contentful_endpoint)
+aas_api.add_resource(Pretix, "/webhook/pretix")
 
 if __name__ == "__main__":
     aas.run()
