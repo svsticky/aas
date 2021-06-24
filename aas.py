@@ -78,6 +78,8 @@ class Pretix(Resource):
         )
 
         response = requests.get(url, headers={"Authorization": f"Token {self.TOKEN}"})
+
+        response.raise_for_status()
         data = response.json()
 
         position = data["positions"][0]
@@ -91,7 +93,7 @@ class Pretix(Resource):
             answers[identifier] = value
 
         if answers.get("aeskwadraat_signup") != "True":
-            return Response(status=200)
+            return Response(status=204)
 
         aes_studie = {
             "Informatica": "IC",
@@ -120,7 +122,7 @@ class Pretix(Resource):
         }
 
         if data.get("testmode"):
-            print(f"Got a test mode signup: {payload}")
+            app.logger.warning(f"Got a test mode signup: {payload}")
         else:
             response = requests.get(
                 "https://www.a-eskwadraat.nl/Leden/Intro/Aanmelden", params=payload
@@ -128,7 +130,7 @@ class Pretix(Resource):
 
             response.raise_for_status()
 
-        return Response(status=200)
+        return Response(status=201)
 
 
 aas = Flask(__name__)
