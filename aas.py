@@ -119,11 +119,14 @@ class Pretix(Resource):
             "studie": aes_studie,
         }
 
-        response = requests.get(
-            "https://www.a-eskwadraat.nl/Leden/Intro/Aanmelden", params=payload
-        )
+        if data.get("testmode"):
+            print(f"Got a test mode signup: {payload}")
+        else:
+            response = requests.get(
+                "https://www.a-eskwadraat.nl/Leden/Intro/Aanmelden", params=payload
+            )
 
-        response.raise_for_status()
+            response.raise_for_status()
 
         return Response(status=200)
 
