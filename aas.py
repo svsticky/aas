@@ -110,7 +110,7 @@ class Pretix(Resource):
             "tussenvoegsel": "",
             "achternaam": achternaam,
             "geboortedatum": answers.get("geboortedatum"),
-            "studentnummer": anwers.get("studentnummer"),
+            "studentnummer": answers.get("studentnummer"),
             "straat": "unknown",
             "huisnummer": "unknown",
             "postcode": "unknown",
