@@ -80,19 +80,50 @@ class Pretix(Resource):
         response = requests.get(url, headers={"Authorization": f"Token {self.TOKEN}"})
         data = response.json()
 
-        opt_in = False
-
         position = data["positions"][0]
 
+        answers = {}
+
         for answer in position["answers"]:
-            if answer["question_identifier"] != "aeskwadraatroddel":
-                continue
+            identifier = answer["question_identifier"]
+            value = answer["answer"]
 
-            if answer["answer"] == "True":
-                opt_in = True
+            answers[identifier] = value
 
-        if opt_in:
-            print(f"opt-in detected: {data['invoice_address']['name']}")
+        if answers.get("aeskwadraat_signup") != "True":
+            return Response(status=200)
+
+        aes_studie = {
+            "Informatica": "IC",
+            "Informatiekunde": "IK",
+            "Dubbele bachelor Informatica/Informatiekunde": "IC/IK",
+        }.get(answers.get("studies"))
+
+        voornaam = position["attendee_name_parts"]["given_name"]
+        achternaam = position["attendee_name_parts"]["family_name"]
+
+        email = data["email"]
+
+        payload = {
+            "email": email,
+            "voornaam": voornaam,
+            "tussenvoegsel": "",
+            "achternaam": achternaam,
+            "geboortedatum": answers.get("geboortedatum"),
+            "studentnummer": anwers.get("studentnummer"),
+            "straat": "unknown",
+            "huisnummer": "unknown",
+            "postcode": "unknown",
+            "plaats": "unknown",
+            "mobiel": data["phone"],
+            "studie": aes_studie,
+        }
+
+        response = requests.get(
+            "https://www.a-eskwadraat.nl/Leden/Intro/Aanmelden", params=payload
+        )
+
+        response.raise_for_status()
 
         return Response(status=200)
 
