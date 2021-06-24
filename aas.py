@@ -122,7 +122,7 @@ class Pretix(Resource):
         }
 
         if data.get("testmode"):
-            app.logger.warning(f"Got a test mode signup: {payload}")
+            aas.logger.warning(f"Got a test mode signup: {payload}")
         else:
             response = requests.get(
                 "https://www.a-eskwadraat.nl/Leden/Intro/Aanmelden", params=payload
