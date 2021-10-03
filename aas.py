@@ -59,13 +59,6 @@ class GitHub(Resource):
         else:
             abort(400)
 
-
-class Contentful(Resource):
-    def post(self):
-        deploy_static_sticky()
-        return Response(status=200)
-
-
 class Pretix(Resource):
     TOKEN = os.environ["PRETIX_TOKEN"]
 
@@ -139,7 +132,6 @@ aas_api = Api(aas, catch_all_404s=True)
 contentful_endpoint = os.getenv("CONTENTFUL_SECRET_ENDPOINT", "missing")
 
 aas_api.add_resource(GitHub, "/webhook/github")
-aas_api.add_resource(Contentful, "/webhook/contentful/" + contentful_endpoint)
 aas_api.add_resource(Pretix, "/webhook/pretix")
 
 if __name__ == "__main__":
