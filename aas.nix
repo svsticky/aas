@@ -8,10 +8,10 @@
   requests
 ]
 ++ (
-  if development 
+  if development
   then [
     black
     pylint
-  ] 
+  ]
   else []
 )

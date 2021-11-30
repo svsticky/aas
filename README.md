@@ -24,7 +24,7 @@ To update it to a newer snapshot, execute `niv update` inside the `nix-shell` an
 The dependencies include `gunicorn`, which is a WSGI server for use in production.
 You can use the following commands as a simple example:
 ```
-$ nix run gunicorn aas:aas
+$ nix-shell default.nix --run "gunicorn aas:aas"
 ```
 This binds `gunicorn` to http://localhost:8000/. You should place a reverse proxy, like `nginx`, in front of this.
 
@@ -35,7 +35,7 @@ you can create a "virtualenv" containing only the production dependencies with:
 $ nix-build -o aas-env
 ```
 
-The server can then be started by running `aas-env/bin/gunicorn`.
+The server can then be started by running `aas-env/bin/gunicorn aas:aas`.
 
 To set this up in our own production environment, we use some [Ansible tasks][sadserver-aas].
 
