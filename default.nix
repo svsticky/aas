@@ -2,7 +2,19 @@
 let
   sources = import ./nix/sources.nix {};
   pkgs = import sources.nixpkgs {};
+  lib = pkgs.lib;
 
-  aas-deps = import ./aas.nix { development = false; };
 
-in pkgs.python38.withPackages aas-deps
+  python = pkgs.python39;
+
+  aas = pkgs.callPackage ./aas.nix { inherit lib python; };
+
+  pythonEnv = pkgs.python39.withPackages (ps: [
+    aas
+    ps.gunicorn
+  ]);
+
+in
+{
+  inherit pythonEnv;
+}
