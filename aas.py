@@ -50,80 +50,12 @@ class GitHub(Resource):
         deploy_static_sticky()
 
 
-class Pretix(Resource):
-    TOKEN = os.environ["PRETIX_TOKEN"]
-
-    def post(self):
-        payload = request.get_json()
-
-        url = (
-            f'https://pretix.svsticky.nl/api/v1/organizers/{payload["organizer"]}/'
-            f'events/{payload["event"]}/orders/{payload["code"]}/'
-        )
-
-        response = requests.get(url, headers={"Authorization": f"Token {self.TOKEN}"})
-
-        response.raise_for_status()
-        data = response.json()
-
-        position = data["positions"][0]
-
-        answers = {}
-
-        for answer in position["answers"]:
-            identifier = answer["question_identifier"]
-            value = answer["answer"]
-
-            answers[identifier] = value
-
-        if answers.get("aeskwadraat_signup") != "True":
-            return Response(status=204)
-
-        aes_studie = {
-            "Informatica": "IC",
-            "Informatiekunde": "IK",
-            "Dubbele bachelor Informatica/Informatiekunde": "IC/IK",
-        }.get(answers.get("studies"))
-
-        voornaam = position["attendee_name_parts"]["given_name"]
-        achternaam = position["attendee_name_parts"]["family_name"]
-
-        email = data["email"]
-
-        payload = {
-            "email": email,
-            "voornaam": voornaam,
-            "tussenvoegsel": "",
-            "achternaam": achternaam,
-            "geboortedatum": answers.get("geboortedatum"),
-            "studentnummer": answers.get("studentnummer"),
-            "straat": "unknown",
-            "huisnummer": "unknown",
-            "postcode": "unknown",
-            "plaats": "unknown",
-            "mobiel": data["phone"],
-            "studie": aes_studie,
-        }
-
-        if data.get("testmode"):
-            aas.logger.warning(f"Got a test mode signup: {payload}")
-        else:
-            response = requests.get(
-                "https://www.a-eskwadraat.nl/Leden/Intro/Aanmelden", params=payload
-            )
-
-            response.raise_for_status()
-
-        return Response(status=201)
-
-
 aas = Flask(__name__)
 aas_api = Api(aas, catch_all_404s=True)
 
 contentful_endpoint = os.getenv("CONTENTFUL_SECRET_ENDPOINT", "missing")
 
 aas_api.add_resource(GitHub, "/webhook/github")
-aas_api.add_resource(Pretix, "/webhook/pretix")
 
 if __name__ == "__main__":
     aas.run()
