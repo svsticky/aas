@@ -12,9 +12,10 @@ This project requires Python 3.7+ and [Nix][nix].
 
 ## Development
 ```console
-# Use the provided sample.env to create a .env file and populate the environment variables
-cp sample.env .env
-vim .env
+# Use the provided 'sample.config.json' to create a 'config.json'
+# file and adjust it to your needs. (See 'Configuration' section)
+cp sample.config.json config.json
+vim config.json
 # Open a shell with Aas' development dependencies available
 nix-shell
 # Run the development server
@@ -24,6 +25,18 @@ python aas.py
 The version of the Python dependencies is determined by the snapshot of the Nixpkgs package set.
 To update it to a newer snapshot, execute `niv update` inside the `nix-shell`
 and re-open the shell. (TODO instructions might be outdated)
+
+## Configuration
+
+Aas is build to support multiple types of webhooks.
+For every type of endpoint you can define a class (webhook handler)
+which will handle all requests to that endpoint. For example, you
+can define a webhook handler which runs a systemd service on incoming webhooks.
+
+To abstract your endpoints from this implementation, aas loads up your endpoint
+config from `config.json`. This json contains a mappings from endpoints to
+webhook handlers. This means that if you ever want to add an endpoint, you simply
+expand the `config.json`.
 
 ## Production
 The dependencies include `gunicorn`, which is a WSGI server for use in production.

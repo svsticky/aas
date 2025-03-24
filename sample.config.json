@@ -1,0 +1,16 @@
+{
+	"webhookHandlers": {
+		"runSystemd": [
+			{
+				"serviceName": "prepare-icecream.service",
+				"endpoint": "/webhook/summer",
+				"pre-sharedKey": "511ae7e5b6920d12ec5fa6054b7beeb06a0f51dd"
+			},
+			{
+				"serviceName": "kernel-panic.service",
+				"endpoint": "/out-of-icecream",
+				"pre-sharedKey": "MOREICECREAMDAMNIT"
+			}
+		]
+	}
+}
