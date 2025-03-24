@@ -8,13 +8,13 @@ jobs:
     runs-on: "ubuntu-latest"
 
     steps:
-      - uses: "actions/checkout@v2"
+      - uses: "actions/checkout@v4"
 
       - name: "install Nix"
-        uses: "cachix/install-nix-action@v12"
+        uses: "cachix/install-nix-action@v31"
 
       - name: "use project cache"
-        uses: cachix/cachix-action@v10
+        uses: cachix/cachix-action@v16
         with:
           name: svsticky-aas
           authToken: ${{ secrets.CACHIX_API_KEY }}
