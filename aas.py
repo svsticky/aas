@@ -66,7 +66,7 @@ def create_systemd_handler(service_name, preshared_key):
 
             # Test if webhook is authenticated with known secret
             if not hmac.compare_digest(
-                signature, # Already hashed like below
+                signature, # Already hashed like below, github action does this for us
                 hmac.new(self.preshared_key, request.get_data(), hashlib.sha1).hexdigest(),
             ):
                 print(f'{self.__name__}: Warning: The webhook request could not authenticate itself.')
