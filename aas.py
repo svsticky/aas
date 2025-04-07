@@ -53,21 +53,21 @@ def create_systemd_handler(service_name, preshared_key):
             print(f"{self.__name__}: responding to webhook!")
 
             ## Check authentication ##
-            signature_header_name = "X-Hub-Signature"
+            signature_header_name = "X-Hub-Signature-256"
             signature_header = request.headers.get(signature_header_name)
             if signature_header is None or len(signature_header) == 0:
                 print(f"{self.__name__}: Warning: The webhook request did not provide a '{signature_header_name}' header.")
-                print(f"{self.__name__}:          Responding with 402.")
-                abort(401) # TODO make this 402, currently we have no handler for 402
+                print(f"{self.__name__}:          Responding with 403.")
+                abort(403)
 
-            # remove the sha1= prefix of the signature
+            # remove the sha256= prefix of the signature
             # TODO: find more elegant way to do this
-            signature = signature_header[5:] # Signature is an HMAC hexdigest of the request body with preshared key
+            signature = signature_header[7:] # Signature is an HMAC hexdigest of the request body with preshared key
 
             # Test if webhook is authenticated with known secret
             if not hmac.compare_digest(
                 signature, # Already hashed like below, github action does this for us
-                hmac.new(self.preshared_key, request.get_data(), hashlib.sha1).hexdigest(),
+                hmac.new(self.preshared_key, request.get_data(), hashlib.sha256).hexdigest(),
             ):
                 print(f'{self.__name__}: Warning: The webhook request could not authenticate itself.')
                 print(f"{self.__name__}:          The signature received ended with '{signature[-4:]}'")
