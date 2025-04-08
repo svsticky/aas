@@ -1,129 +1,112 @@
-import concurrent.futures
 import hashlib
 import hmac
 import json
 import subprocess
-import os
 
-import requests
-from flask import Flask, request, Response, abort
+from flask import Flask, request, abort
 from flask_restful import Api, Resource
 
+def run_systemd(service_name):
+    """Runs a single systemd service on the system."""
 
-def deploy_static_sticky():
-    deploy_service = os.getenv("DEPLOY_SERVICE")
-    # Make sure the user running this has root privileges to start this command, e.g. by adding it to a sudoers file
+    print(f"Starting systemd service '{service_name}'")
+
+    # Make sure the user running this has root privileges to start this command,
+    # e.g. by adding it to a sudoers file for this specific command
     subprocess.run(
         [
             "sudo",
             "/usr/bin/systemd-run",
             "--no-block",
             "--property",
-            f"After={deploy_service}",
+            f"After={service_name}",
             "--",
             "systemctl",
             "start",
-            deploy_service,
+            service_name,
         ],
         check=True,
     )
 
+def create_systemd_handler(service_name, preshared_key):
+    """
+    This function is a wrapper for Flask, for flask cannot assign an instance of a class
+    to an endpoint, and instead wants to create an instance on its own. We thus tell him here how!
+    """
 
-class GitHub(Resource):
-    # Share this secret with GitHub to authenticate this hook
-    SECRET = os.environ["GITHUB_SECRET"].encode()
+    instance_name = f'RunSystemdHandler {service_name}'
+    class RunSystemdHandler(Resource):
+        """
+        Run a specified systemd service on incoming authenticated webhooks.
+        Requests are authenticated with a pre-shared key, known to both Aas and
+        the calling party.
+        """
 
-    def post(self):
-        ## Check authentication ##
-        # remove the sha1= prefix of the signature
-        # TODO: find more elegant way to do this
-        signature = request.headers.get("X-Hub-Signature")[5:]
+        def __init__(self):
+            super().__init__()
+            self.service_name = service_name
+            self.preshared_key = preshared_key.encode()
+            self.__name__ = instance_name # Needed for Flask, but useful anyway
+            print(f"  Created handler '{self.__name__}'")
 
-        if not hmac.compare_digest(
-            signature,
-            hmac.new(self.SECRET, request.get_data(), hashlib.sha1).hexdigest(),
-        ):
-            abort(401)
+        def post(self):
+            print(f"{self.__name__}: responding to webhook!")
 
-        response_payload = request.get_json()
+            ## Check authentication ##
+            signature_header_name = "X-Hub-Signature-256"
+            signature_header = request.headers.get(signature_header_name)
+            if signature_header is None or len(signature_header) == 0:
+                print(f"{self.__name__}: Warning: The webhook request did not provide a '{signature_header_name}' header.")
+                print(f"{self.__name__}:          Responding with 403.")
+                abort(403)
 
-        deploy_static_sticky()
+            # remove the sha256= prefix of the signature
+            # TODO: find more elegant way to do this
+            signature = signature_header[7:] # Signature is an HMAC hexdigest of the request body with preshared key
 
+            # Test if webhook is authenticated with known secret
+            if not hmac.compare_digest(
+                signature, # Already hashed like below, github action does this for us
+                hmac.new(self.preshared_key, request.get_data(), hashlib.sha256).hexdigest(),
+            ):
+                print(f'{self.__name__}: Warning: The webhook request could not authenticate itself.')
+                print(f"{self.__name__}:          The signature received ended with '{signature[-4:]}'")
+                abort(401)
 
-class Pretix(Resource):
-    TOKEN = os.environ["PRETIX_TOKEN"]
+            print(f"{self.__name__}: Authenticated! Starting systemd service.")
 
-    def post(self):
-        payload = request.get_json()
+            run_systemd(self.service_name)
+            return('Yoink!')
 
-        url = (
-            f'https://pretix.svsticky.nl/api/v1/organizers/{payload["organizer"]}/'
-            f'events/{payload["event"]}/orders/{payload["code"]}/'
-        )
-
-        response = requests.get(url, headers={"Authorization": f"Token {self.TOKEN}"})
-
-        response.raise_for_status()
-        data = response.json()
-
-        position = data["positions"][0]
-
-        answers = {}
-
-        for answer in position["answers"]:
-            identifier = answer["question_identifier"]
-            value = answer["answer"]
-
-            answers[identifier] = value
-
-        if answers.get("aeskwadraat_signup") != "True":
-            return Response(status=204)
-
-        aes_studie = {
-            "Informatica": "IC",
-            "Informatiekunde": "IK",
-            "Dubbele bachelor Informatica/Informatiekunde": "IC/IK",
-        }.get(answers.get("studies"))
-
-        voornaam = position["attendee_name_parts"]["given_name"]
-        achternaam = position["attendee_name_parts"]["family_name"]
-
-        email = data["email"]
-
-        payload = {
-            "email": email,
-            "voornaam": voornaam,
-            "tussenvoegsel": "",
-            "achternaam": achternaam,
-            "geboortedatum": answers.get("geboortedatum"),
-            "studentnummer": answers.get("studentnummer"),
-            "straat": "unknown",
-            "huisnummer": "unknown",
-            "postcode": "unknown",
-            "plaats": "unknown",
-            "mobiel": data["phone"],
-            "studie": aes_studie,
-        }
-
-        if data.get("testmode"):
-            aas.logger.warning(f"Got a test mode signup: {payload}")
-        else:
-            response = requests.get(
-                "https://www.a-eskwadraat.nl/Leden/Intro/Aanmelden", params=payload
-            )
-
-            response.raise_for_status()
-
-        return Response(status=201)
+    RunSystemdHandler.__name__ = instance_name # Prevents duplicate assignments to same endpoint (Flask stuff)
+    return RunSystemdHandler
 
 
-aas = Flask(__name__)
-aas_api = Api(aas, catch_all_404s=True)
+def load_webhooks(api):
+    """Dynamically sets up all webhook handlers based on the 'config.json'."""
+    with open('config.json') as f: config = json.load(f)
+    print('Parsing the following config:')
+    print(config)
+    print('')
 
-contentful_endpoint = os.getenv("CONTENTFUL_SECRET_ENDPOINT", "missing")
+    # Load all RunSystemd webhook handlers
+    for webhook in config["webhookHandlers"]["runSystemd"]:
+        service_name = webhook["serviceName"]
+        endpoint = webhook["endpoint"]
+        pre_shared_key = webhook["pre-sharedKey"]
 
-aas_api.add_resource(GitHub, "/webhook/github")
-aas_api.add_resource(Pretix, "/webhook/pretix")
+        print(f"Subscribing a systemd handler to endpoint '{endpoint}' for service '{service_name}'")
+        print(f"  The webhook expects authentication with a pre-shared key ending with '{pre_shared_key[-4:]}'")
+        api.add_resource(create_systemd_handler(service_name, pre_shared_key), endpoint)
 
 if __name__ == "__main__":
+    print('Aas is starting...\n')
+
+    aas = Flask(__name__)
+    aas_api = Api(aas, catch_all_404s=True)
+    load_webhooks(aas_api)
+
+    print('\nBegining to listen to webhooks!\n')
     aas.run()
+
+    print('\nAas is closing...')

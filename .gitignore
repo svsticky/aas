@@ -1,6 +1,7 @@
 __pycache__/ 
 
 .env
+config.json
 
 .directory
 
