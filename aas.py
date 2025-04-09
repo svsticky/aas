@@ -99,14 +99,14 @@ def load_webhooks(api):
         print(f"  The webhook expects authentication with a pre-shared key ending with '{pre_shared_key[-4:]}'")
         api.add_resource(create_systemd_handler(service_name, pre_shared_key), endpoint)
 
+# Needs to be outside __main__ so that gunicorn can find it
+# Every worker will run this code independently, so the logging might be printed for every worker (default 1).
+print('An Aas gunicorn worker is starting...\n')
+aas = Flask(__name__)
+aas_api = Api(aas, catch_all_404s=True)
+load_webhooks(aas_api)
+
 if __name__ == "__main__":
-    print('Aas is starting...\n')
-
-    aas = Flask(__name__)
-    aas_api = Api(aas, catch_all_404s=True)
-    load_webhooks(aas_api)
-
     print('\nBegining to listen to webhooks!\n')
     aas.run()
-
     print('\nAas is closing...')
