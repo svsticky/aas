@@ -8,7 +8,7 @@ triggered by GitHub pushes or changes in the Contentful CMS it uses.
 This project can be extended for other webhook processing.
 
 # Usage
-This project requires Python 3.12.
+This project requires uv to install the right python version and packages in a virtual environment.
 
 ## Development
 
