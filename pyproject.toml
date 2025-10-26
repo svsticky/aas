@@ -1,0 +1,11 @@
+[project]
+name = "Aas"
+version = "0.0.0"
+description = "Webhook listener of Sticky"
+readme = "README.md"
+requires-python = "==3.12.*"
+dependencies = [
+    "flask==2.2.5",
+    "flask-restful==0.3.10",
+    "gunicorn==23.0.0",
+]
